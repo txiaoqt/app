@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'success_screen.dart';
+import '../../supabase/auth/authCalls.dart'; // Make sure this path is correct
 
 class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
   NoAnimationMaterialPageRoute({required super.builder, super.settings});
@@ -604,32 +604,41 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() => isLoading = true);
 
       try {
-        // Parse birthday
         final birthday = DateTime(
           int.parse(selectedYear!),
           int.parse(selectedMonth!),
           int.parse(selectedDay!),
         );
 
-        final response = await Supabase.instance.client.auth.signUp(
+        final userMetadata = {
+          'first_name': _firstNameController.text,
+          'middle_name': _middleNameController.text,
+          'last_name': _lastNameController.text,
+          'email': _emailController.text,
+          'username': _usernameController.text,
+          'contact': _contactController.text,
+          'pin': _pinController.text,
+          'address': _addressController.text,
+          'region': selectedRegion,
+          'province': selectedProvince,
+          'city': selectedCity,
+          'birthday': birthday.toIso8601String(),
+        };
+
+        final authService = SupabaseAuthService();
+
+        final response = await authService.signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          data: {
-            'first_name': _firstNameController.text,
-            'middle_name': _middleNameController.text,
-            'last_name': _lastNameController.text,
-            'username': _usernameController.text,
-            'contact': _contactController.text,
-            'pin': _pinController.text,
-            'address': _addressController.text,
-            'region': selectedRegion,
-            'province': selectedProvince,
-            'city': selectedCity,
-            'birthday': birthday.toIso8601String(),
-          },
+          metadata: userMetadata,
         );
 
         if (response.user != null) {
+          await authService.insertVoterDetails(
+            userId: response.user!.id,
+            voterData: userMetadata,
+          );
+
           Navigator.of(context).push(
             NoAnimationMaterialPageRoute(builder: (_) => const SuccessScreen()),
           );

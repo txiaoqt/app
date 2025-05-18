@@ -6,14 +6,22 @@ class SupabaseAuthService {
   Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
+    Map<String, dynamic>? metadata,
   }) async {
-    return await supabase.auth.signUp(email: email, password: password);
+    return await supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: metadata, // stores to user_metadata
+    );
   }
 
-  Future<void> insertUserDetails({
+  Future<void> insertVoterDetails({
     required String userId,
-    required Map<String, dynamic> userData,
+    required Map<String, dynamic> voterData,
   }) async {
-    await supabase.from('users').insert({...userData, 'user_id': userId});
+    await supabase.from('voters').insert({
+      ...voterData,
+      'id': userId, // foreign key to auth.users.id
+    });
   }
 }
