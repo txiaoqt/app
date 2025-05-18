@@ -1,8 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../screens/home_screen.dart'; // Replace with your actual homepage widget
 import 'login_screen.dart';
 
-class SuccessScreen extends StatelessWidget {
+class SuccessScreen extends StatefulWidget {
   const SuccessScreen({super.key});
+
+  @override
+  State<SuccessScreen> createState() => _SuccessScreenState();
+}
+
+class _SuccessScreenState extends State<SuccessScreen> {
+  bool checking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startVerificationCheck();
+  }
+
+  void _startVerificationCheck() {
+    checking = true;
+    Future.delayed(const Duration(seconds: 3), _checkVerification);
+  }
+
+  Future<void> _checkVerification() async {
+    final response = await Supabase.instance.client.auth.getUser();
+    final user = response.user;
+
+    if (user != null && user.emailConfirmedAt != null) {
+      // Email verified! Redirect to homepage.
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      // Keep checking every 3 seconds
+      if (checking) {
+        Future.delayed(const Duration(seconds: 3), _checkVerification);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    checking = false;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,63 +59,36 @@ class SuccessScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF7ED957), Color(0xFF43B324)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: const Center(
-                  child: Icon(Icons.check, color: Colors.white, size: 64),
-                ),
+              const Icon(
+                Icons.email_outlined,
+                color: Color(0xFFEF7575),
+                size: 64,
               ),
               const SizedBox(height: 32),
               const Text(
-                'SUCCESS!',
+                'Verify Your Email',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                  letterSpacing: 1.5,
+                  color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const Text(
-                'Your account has been successfully created.',
-                style: TextStyle(
-                  color: Color(0xFFEF7575),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+                'We sent you a confirmation link. Please check your email and click the link to activate your account. Please back to the login page if you have already verified your email.',
                 textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
-              const SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFEF7575),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
+              const SizedBox(height: 32),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
                     ),
-                    elevation: 4,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  },
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
+                  );
+                },
+                child: const Text('Back to Login'),
               ),
             ],
           ),
@@ -79,4 +96,4 @@ class SuccessScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}
