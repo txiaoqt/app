@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class PartiesScreen extends StatelessWidget {
+class PartiesScreen extends StatefulWidget {
   const PartiesScreen({super.key});
 
   @override
+  State<PartiesScreen> createState() => _PartiesScreenState();
+}
+
+class _PartiesScreenState extends State<PartiesScreen> {
+  final supabase = Supabase.instance.client;
+
+  Future<List<Map<String, dynamic>>> fetchParties() async {
+    final response = await supabase
+        .from('parties')
+        .select('code, image_url')
+        .order('created_at');
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> parties = [
-      {'img': 'assets/images/votewise.png', 'code': 'PRM'},
-      {'img': 'assets/images/votewise.png', 'code': 'TVP'},
-      {'img': 'assets/images/votewise.png', 'code': 'PLU'},
-      {'img': 'assets/images/votewise.png', 'code': 'UGF'},
-      {'img': 'assets/images/votewise.png', 'code': 'PTC'},
-      {'img': 'assets/images/votewise.png', 'code': 'RDL'},
-    ];
     return Scaffold(
       backgroundColor: const Color(0xFFEF7575),
       body: SafeArea(
         child: Column(
           children: [
             Container(
-              color: const Color(0xFFEF7575),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
                 children: [
@@ -43,48 +51,94 @@ class PartiesScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    const Text('All Parties', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                    const Text(
+                      'All Parties',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Expanded(
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 24,
-                        crossAxisSpacing: 24,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        children: parties.map((party) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFAD2D2),
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color.fromRGBO(0, 0, 0, 0.08),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                      child: FutureBuilder<List<Map<String, dynamic>>>(
+                        future: fetchParties(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text('Error: ${snapshot.error}'),
+                            );
+                          } else if (snapshot.data == null ||
+                              snapshot.data!.isEmpty) {
+                            return const Center(
+                              child: Text('No parties found.'),
+                            );
+                          }
+
+                          final parties = snapshot.data!;
+                          return GridView.count(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 24,
+                            crossAxisSpacing: 24,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 8,
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(
-                                    party['img']!,
-                                    height: 70,
-                                    width: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  party['code']!,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                                ),
-                              ],
-                            ),
+                            children:
+                                parties.map((party) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFAD2D2),
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color.fromRGBO(
+                                            0,
+                                            0,
+                                            0,
+                                            0.08,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Image.network(
+                                            party['image_url'] ?? '',
+                                            height: 70,
+                                            width: 100,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (_, __, ___) =>
+                                                    const Icon(Icons.image),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          party['code'] ?? '',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
                           );
-                        }).toList(),
+                        },
                       ),
                     ),
                   ],
@@ -96,4 +150,4 @@ class PartiesScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -14,35 +14,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
   bool checking = false;
 
   @override
-  void initState() {
-    super.initState();
-    _startVerificationCheck();
-  }
-
-  void _startVerificationCheck() {
-    checking = true;
-    Future.delayed(const Duration(seconds: 3), _checkVerification);
-  }
-
-  Future<void> _checkVerification() async {
-    final response = await Supabase.instance.client.auth.getUser();
-    final user = response.user;
-
-    if (user != null && user.emailConfirmedAt != null) {
-      // Email verified! Redirect to homepage.
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      // Keep checking every 3 seconds
-      if (checking) {
-        Future.delayed(const Duration(seconds: 3), _checkVerification);
-      }
-    }
-  }
-
-  @override
   void dispose() {
     checking = false;
     super.dispose();
