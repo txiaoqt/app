@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../voting/party_detail_screen.dart';
 
 class PartiesScreen extends StatefulWidget {
   const PartiesScreen({super.key});
@@ -14,9 +15,8 @@ class _PartiesScreenState extends State<PartiesScreen> {
   Future<List<Map<String, dynamic>>> fetchParties() async {
     final response = await supabase
         .from('parties')
-        .select('code, image_url')
+        .select('code, image_url, name, goal, id')
         .order('created_at');
-
     return List<Map<String, dynamic>>.from(response);
   }
 
@@ -70,7 +70,7 @@ class _PartiesScreenState extends State<PartiesScreen> {
                             );
                           } else if (snapshot.hasError) {
                             return Center(
-                              child: Text('Error: ${snapshot.error}'),
+                              child: Text('Error: \${snapshot.error}'),
                             );
                           } else if (snapshot.data == null ||
                               snapshot.data!.isEmpty) {
@@ -90,50 +90,67 @@ class _PartiesScreenState extends State<PartiesScreen> {
                             ),
                             children:
                                 parties.map((party) {
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFAD2D2),
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color.fromRGBO(
-                                            0,
-                                            0,
-                                            0,
-                                            0.08,
-                                          ),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
+                                  final tag = 'partyImage_${party['id']}';
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => PartyDetailScreen(
+                                                party: party,
+                                                heroTag: tag,
+                                              ),
                                         ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                      );
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFAD2D2),
+                                        borderRadius: BorderRadius.circular(24),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color.fromRGBO(
+                                              0,
+                                              0,
+                                              0,
+                                              0.08,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
                                           ),
-                                          child: Image.network(
-                                            party['image_url'] ?? '',
-                                            height: 70,
-                                            width: 100,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (_, __, ___) =>
-                                                    const Icon(Icons.image),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Hero(
+                                            tag: tag,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Image.network(
+                                                party['image_url'] ?? '',
+                                                height: 70,
+                                                width: 100,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (_, __, ___) =>
+                                                        const Icon(Icons.image),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          party['code'] ?? '',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            party['code'] ?? '',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   );
                                 }).toList(),

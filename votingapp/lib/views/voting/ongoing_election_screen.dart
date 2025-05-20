@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // <-- Make sure this is imported
+
 import 'candidate_vote_screen.dart';
+import 'party_vote_screen.dart';
 import '../screens/home_screen.dart';
 import '../status/vote_status_screen.dart';
 import '../profile/profile_screen.dart';
@@ -11,8 +14,42 @@ class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
   Duration get transitionDuration => Duration.zero;
 }
 
-class OngoingElectionScreen extends StatelessWidget {
+class OngoingElectionScreen extends StatefulWidget {
   const OngoingElectionScreen({super.key});
+
+  @override
+  State<OngoingElectionScreen> createState() => _OngoingElectionScreenState();
+}
+
+class _OngoingElectionScreenState extends State<OngoingElectionScreen> {
+  int candidateCount = 0;
+  int partyCount = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCounts();
+  }
+
+  Future<void> fetchCounts() async {
+    final supabase = Supabase.instance.client;
+    try {
+      final candidateResponse = await supabase.from('candidates').select();
+      final partyResponse = await supabase.from('parties').select();
+
+      setState(() {
+        candidateCount = candidateResponse.length;
+        partyCount = partyResponse.length;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching counts: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,25 +60,45 @@ class OngoingElectionScreen extends StatelessWidget {
           children: [
             Container(
               color: const Color(0xFFEF7575),
-              padding: const EdgeInsets.only(left: 8, top: 8, bottom: 0, right: 8),
+              padding: const EdgeInsets.only(
+                left: 8,
+                top: 8,
+                bottom: 0,
+                right: 8,
+              ),
               child: Row(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pushReplacement(
-                       NoAnimationMaterialPageRoute(builder: (context) => HomeScreen()),
-                    )
+                    onPressed:
+                        () => Navigator.of(context).pushReplacement(
+                          NoAnimationMaterialPageRoute(
+                            builder: (context) => HomeScreen(),
+                          ),
+                        ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Ongoing Election', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black)),
+            const Text(
+              'Ongoing Election',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+                color: Colors.black,
+              ),
+            ),
             const SizedBox(height: 32),
+
+            // === Candidate Voting Box ===
             Center(
               child: Container(
                 width: 320,
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 22,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAD2D2),
                   borderRadius: BorderRadius.circular(20),
@@ -57,12 +114,32 @@ class OngoingElectionScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text('Provincial Election', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
+                    const Text(
+                      'Candidate Election',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Candidates: 4', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                    Text(
+                      isLoading ? 'Loading...' : 'Candidates: $candidateCount',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    const Text('Start Date: May 1, 2025 at 7:00:00 AM', style: TextStyle(fontSize: 14, color: Colors.black)),
-                    const Text('End Date: May 1, 2025 at 7:00:00 PM', style: TextStyle(fontSize: 14, color: Colors.black)),
+                    const Text(
+                      'Start Date: May 1, 2025 at 7:00:00 AM',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                    const Text(
+                      'End Date: May 1, 2025 at 7:00:00 PM',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
                     const SizedBox(height: 22),
                     Center(
                       child: Container(
@@ -83,14 +160,27 @@ class OngoingElectionScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(24),
                             ),
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 36,
+                              vertical: 12,
+                            ),
                           ),
                           onPressed: () {
                             Navigator.of(context).push(
-                              NoAnimationMaterialPageRoute(builder: (context) => const CandidateVoteScreen()),
+                              NoAnimationMaterialPageRoute(
+                                builder:
+                                    (context) => const CandidateVoteScreen(),
+                              ),
                             );
                           },
-                          child: const Text('VOTE NOW', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                          child: const Text(
+                            'VOTE NOW',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -98,6 +188,106 @@ class OngoingElectionScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            const SizedBox(height: 32),
+
+            // === Party Voting Box ===
+            Center(
+              child: Container(
+                width: 320,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 22,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8B4B8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.black26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(0, 0, 0, 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Party-List Election',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isLoading ? 'Loading...' : 'Parties: $partyCount',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Start Date: May 1, 2025 at 7:00:00 AM',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                    const Text(
+                      'End Date: May 1, 2025 at 7:00:00 PM',
+                      style: TextStyle(fontSize: 14, color: Colors.black),
+                    ),
+                    const SizedBox(height: 22),
+                    Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color.fromRGBO(0, 0, 0, 0.13),
+                              blurRadius: 6,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEF7575),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 36,
+                              vertical: 12,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              NoAnimationMaterialPageRoute(
+                                builder: (context) => const PartyVoteScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'VOTE NOW',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const Spacer(),
           ],
         ),
@@ -107,15 +297,21 @@ class OngoingElectionScreen extends StatelessWidget {
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).push(
-              NoAnimationMaterialPageRoute(builder: (context) => const HomeScreen()),
+              NoAnimationMaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
             );
           } else if (index == 2) {
             Navigator.of(context).push(
-              NoAnimationMaterialPageRoute(builder: (context) => const VoteStatusScreen()),
+              NoAnimationMaterialPageRoute(
+                builder: (context) => const VoteStatusScreen(),
+              ),
             );
           } else if (index == 3) {
             Navigator.of(context).push(
-              NoAnimationMaterialPageRoute(builder: (context) => const ProfileScreen()),
+              NoAnimationMaterialPageRoute(
+                builder: (context) => const ProfileScreen(),
+              ),
             );
           }
         },
@@ -145,7 +341,6 @@ class CustomPillNavBar extends StatelessWidget {
 
     return Stack(
       children: [
-        // Black bar at the very bottom, outside SafeArea
         Positioned.fill(
           child: Align(
             alignment: Alignment.bottomCenter,
@@ -156,7 +351,6 @@ class CustomPillNavBar extends StatelessWidget {
             ),
           ),
         ),
-        // Pills row, inside SafeArea so it doesn't touch the very bottom
         SafeArea(
           top: false,
           child: Padding(
@@ -173,9 +367,15 @@ class CustomPillNavBar extends StatelessWidget {
                       onTap: () => onTap(index),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: selected ? const Color(0xFFEF7575) : const Color(0xFFFAD2D2),
+                          color:
+                              selected
+                                  ? const Color(0xFFEF7575)
+                                  : const Color(0xFFFAD2D2),
                           borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
@@ -201,7 +401,8 @@ class CustomPillNavBar extends StatelessWidget {
                                 softWrap: false,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: selected ? Colors.white : Colors.black87,
+                                  color:
+                                      selected ? Colors.white : Colors.black87,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                 ),
@@ -220,4 +421,4 @@ class CustomPillNavBar extends StatelessWidget {
       ],
     );
   }
-} 
+}

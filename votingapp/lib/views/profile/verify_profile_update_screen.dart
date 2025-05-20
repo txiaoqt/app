@@ -23,13 +23,24 @@ class VerifyProfileUpdateScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 36),
-            const Text('Update your Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+            const Text(
+              'Update your Profile',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.black87,
+              ),
+            ),
             const SizedBox(height: 32),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 32.0),
               child: Text(
                 'A verification email to update your profile has been sent to your new email address.',
-                style: TextStyle(color: Colors.red, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -38,7 +49,11 @@ class VerifyProfileUpdateScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 32.0),
               child: Text(
                 "*NOTE: If you didn't receive the email, click \"Resend Email\" to get a new one.",
-                style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -59,7 +74,14 @@ class VerifyProfileUpdateScreen extends StatelessWidget {
                         elevation: 4,
                       ),
                       onPressed: () {},
-                      child: const Text('Resend Email', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                      child: const Text(
+                        'Resend Email',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -75,7 +97,14 @@ class VerifyProfileUpdateScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -86,4 +115,4 @@ class VerifyProfileUpdateScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

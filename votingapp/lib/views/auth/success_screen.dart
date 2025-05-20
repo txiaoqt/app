@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../screens/home_screen.dart'; // Replace with your actual homepage widget
 import 'login_screen.dart';
 
 class SuccessScreen extends StatefulWidget {

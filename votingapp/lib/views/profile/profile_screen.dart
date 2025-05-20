@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'edit_profile_screen.dart';
 import 'voting_history_screen.dart';
 import 'about_us_screen.dart';
@@ -8,17 +7,17 @@ import '../auth/splash_screen.dart';
 import '../screens/home_screen.dart';
 import '../voting/ongoing_election_screen.dart';
 import '../status/vote_status_screen.dart';
+import 'notification_detail_screen.dart';
+import 'share_qr_screen.dart'; // Added import
 
 class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
   NoAnimationMaterialPageRoute({required super.builder, super.settings});
-
   @override
   Duration get transitionDuration => Duration.zero;
 }
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   ProfileScreenState createState() => ProfileScreenState();
 }
@@ -35,7 +34,6 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchVoterData() async {
     final user = Supabase.instance.client.auth.currentUser;
-
     if (user == null) {
       setState(() {
         voterData = null;
@@ -68,6 +66,9 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (voterData == null) {
       return const Scaffold(body: Center(child: Text('Voter not found.')));
     }
+
+    final imageUrl = voterData?['image_url'] as String?;
+    final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -121,9 +122,15 @@ class ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 8),
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 44,
-                    backgroundImage: AssetImage('assets/images/hanni.jpg'),
+                    backgroundImage:
+                        hasImage
+                            ? NetworkImage(imageUrl!)
+                            : const AssetImage(
+                                  'assets/images/default_avatar.png',
+                                )
+                                as ImageProvider,
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -188,7 +195,18 @@ class ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  _profileOption(Icons.notifications, 'Notifications'),
+                  _profileOption(
+                    Icons.notifications,
+                    'Notifications',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        NoAnimationMaterialPageRoute(
+                          builder:
+                              (context) => const NotificationDetailScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _profileOption(
                     Icons.info,
                     'About Us',
@@ -200,7 +218,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  _profileOption(Icons.qr_code, 'Share the App via QR Code'),
+                  _profileOption(
+                    Icons.qr_code,
+                    'Share the App via QR Code',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        NoAnimationMaterialPageRoute(
+                          builder: (context) => const ShareQRScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _profileOption(
                     Icons.logout,
                     'Log out',
@@ -318,7 +346,6 @@ class CustomPillNavBar extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: List.generate(items.length, (index) {
                   final selected = selectedIndex == index;
                   return Container(

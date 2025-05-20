@@ -1,22 +1,23 @@
+// Add this import at the top if not already included
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../profile/profile_screen.dart';
 import 'parties_screen.dart';
 import 'candidates_screen.dart';
 import '../voting/ongoing_election_screen.dart' show OngoingElectionScreen;
 import '../status/vote_status_screen.dart' show VoteStatusScreen;
+import 'window_screen.dart';
 
 class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
   NoAnimationMaterialPageRoute({required super.builder, super.settings});
-
   @override
   Duration get transitionDuration => Duration.zero;
 }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -24,11 +25,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String firstName = '';
   String city = '';
+  String imageUrl = ''; // <-- New variable to store profile image URL
+  final _pageController = PageController(viewportFraction: 0.9);
+  int _currentPage = 0;
+
+  List<Map<String, dynamic>> carouselItems = [];
 
   @override
   void initState() {
     super.initState();
     fetchUserData();
+    fetchCarouselItems();
+
+    _pageController.addListener(() {
+      int next = _pageController.page!.round();
+      if (_currentPage != next) {
+        setState(() => _currentPage = next);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchUserData() async {
@@ -37,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final response =
           await Supabase.instance.client
               .from('voters')
-              .select('first_name, city')
+              .select('first_name, city, image_url') // <-- Include image_url
               .eq('id', user.id)
               .single();
 
@@ -45,8 +65,61 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           firstName = response['first_name'] ?? 'Voter';
           city = response['city'] ?? 'Unknown City';
+          imageUrl = response['image_url'] ?? '';
         });
       }
+    }
+  }
+
+  Future<void> fetchCarouselItems() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('external_links')
+          .select('image_url, url, type')
+          .order('id');
+
+      if (mounted) {
+        setState(() {
+          carouselItems = List<Map<String, dynamic>>.from(response);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch carousel items: $e')),
+      );
+    }
+  }
+
+  void _handleImageTap(int index) async {
+    final item = carouselItems[index];
+    final url = item['url'];
+
+    final shouldOpen = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text("Open Link"),
+            content: const Text("Do you want to view this content?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text("Open"),
+              ),
+            ],
+          ),
+    );
+
+    if (shouldOpen == true && url != null && context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WebViewScreen(url: url, title: 'Details'),
+        ),
+      );
     }
   }
 
@@ -61,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: AssetImage('assets/images/hanni.jpg'),
+                    backgroundImage:
+                        imageUrl.isNotEmpty
+                            ? NetworkImage(imageUrl)
+                            : const AssetImage('assets/images/hanni.jpg')
+                                as ImageProvider,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -97,11 +174,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Welcome!',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
@@ -120,30 +197,49 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
               child: Column(
                 children: [
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Image.asset(
-                        'assets/images/votewise.png',
-                        height: 120,
-                        width: 320,
-                        fit: BoxFit.cover,
-                      ),
+                  SizedBox(
+                    height: 150,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: carouselItems.length,
+                      itemBuilder: (context, index) {
+                        final item = carouselItems[index];
+                        return GestureDetector(
+                          onTap: () => _handleImageTap(index),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Image.network(
+                                item['image_url'] ?? '',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: Text('Image load failed'),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Image.asset(
-                        'assets/images/votewise.png',
-                        height: 120,
-                        width: 320,
-                        fit: BoxFit.cover,
-                      ),
+                  const SizedBox(height: 10),
+                  SmoothPageIndicator(
+                    controller: _pageController,
+                    count: carouselItems.length,
+                    effect: WormEffect(
+                      dotHeight: 8,
+                      dotWidth: 8,
+                      activeDotColor: Colors.redAccent,
+                      dotColor: Colors.grey.shade300,
                     ),
                   ),
                 ],
@@ -156,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     margin: const EdgeInsets.only(
                       left: 18,
                       right: 6,
-                      top: 30,
+                      top: 15,
                       bottom: 8,
                     ),
                     child: ElevatedButton(
@@ -188,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     margin: const EdgeInsets.only(
                       left: 6,
                       right: 18,
-                      top: 30,
+                      top: 15,
                       bottom: 8,
                     ),
                     child: ElevatedButton(
@@ -221,27 +317,23 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Image.asset(
-                        'assets/images/votewise.png',
-                        height: 80,
-                        width: 150,
-                        fit: BoxFit.cover,
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset(
+                      'assets/images/votewise.png',
+                      height: 80,
+                      width: 150,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(width: 18),
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Image.asset(
-                        'assets/images/votewise.png',
-                        height: 80,
-                        width: 150,
-                        fit: BoxFit.cover,
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset(
+                      'assets/images/votewise.png',
+                      height: 80,
+                      width: 150,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ],
@@ -317,7 +409,6 @@ class CustomPillNavBar extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: List.generate(items.length, (index) {
                   final selected = selectedIndex == index;
                   return Container(

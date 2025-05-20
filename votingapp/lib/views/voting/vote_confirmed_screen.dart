@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:votingapp/views/screens/home_screen.dart';
 
-
 class VoteConfirmedScreen extends StatelessWidget {
   const VoteConfirmedScreen({super.key});
 
@@ -18,7 +17,11 @@ class VoteConfirmedScreen extends StatelessWidget {
               child: const Center(
                 child: Text(
                   'VOTE CONFIRMED!',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -86,10 +89,19 @@ class VoteConfirmedScreen extends StatelessWidget {
                         ),
                         onPressed: () {
                           Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => HomeScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => HomeScreen(),
+                            ),
                           );
                         },
-                        child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                        child: const Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -101,4 +113,4 @@ class VoteConfirmedScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

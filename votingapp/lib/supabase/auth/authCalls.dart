@@ -11,7 +11,7 @@ class SupabaseAuthService {
     return await supabase.auth.signUp(
       email: email,
       password: password,
-      data: metadata, // stores to user_metadata
+      data: metadata,
     );
   }
 
@@ -21,7 +21,7 @@ class SupabaseAuthService {
   }) async {
     await supabase.from('voters').insert({
       ...voterData,
-      'id': userId, // foreign key to auth.users.id
+      'id': userId, // Foreign key to auth.users.id
     });
   }
 }
