@@ -101,18 +101,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: Image.asset(
-                        'assets/images/votewise.png',
-                        width: 32,
-                        height: 32,
-                      ),
-                    ),
-                  ),
+                  SizedBox(),
                 ],
               ),
             ),
@@ -127,9 +116,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                     backgroundImage:
                         hasImage
                             ? NetworkImage(imageUrl!)
-                            : const AssetImage(
-                                  'assets/images/default_avatar.png',
-                                )
+                            : const AssetImage('assets/images/hanni.jpg')
                                 as ImageProvider,
                   ),
                   const SizedBox(height: 10),

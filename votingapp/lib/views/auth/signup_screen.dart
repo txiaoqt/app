@@ -38,6 +38,39 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedCity;
   bool isLoading = false;
 
+  final Map<String, List<String>> regions = {
+    'NCR': ['Metro Manila'],
+    'Region I': ['Ilocos Norte', 'Ilocos Sur', 'La Union', 'Pangasinan'],
+    'Region II': ['Cagayan', 'Isabela', 'Batanes'],
+  };
+
+  final Map<String, List<String>> provinces = {
+    'Metro Manila': [
+      'Manila',
+      'Quezon City',
+      'Makati',
+      'Caloocan',
+      'Pasay',
+      'Pasig',
+      'Marikina',
+      'Mandaluyong',
+    ],
+    'Ilocos Norte': ['Laoag', 'Batac', 'San Nicolas', 'Bangui', 'Solsona'],
+    'Ilocos Sur': ['Vigan City', 'Candon', 'Santa', 'Cervantes', 'Candon'],
+    'La Union': ['San Fernando'],
+    'Pangasinan': ['Alaminos', 'San Manuel', 'Sison', 'Lingayen', 'Umingan'],
+    'Cagayan': [
+      'Tuguegarao',
+      'Aparri',
+      'Abulug',
+      'Alcala',
+      'Buguey',
+      'Calayan',
+    ],
+    'Isabela': ['Ilagan', 'Cauayan', 'Echague', 'Maconacon', 'Benito Soliven'],
+    'Batanes': ['Basco', 'Uyugan', 'Mahatao', 'Ivana'],
+  };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,6 +191,46 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ],
                       ),
+                      // Gender Dropdown (NEW LOCATION)
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color.fromRGBO(0, 0, 0, 0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedGender,
+                            hint: const Text('Select Gender'),
+                            isExpanded: true,
+                            items:
+                                ['Male', 'Female', 'Other']
+                                    .map(
+                                      (gender) => DropdownMenuItem(
+                                        value: gender,
+                                        child: Text(gender),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                selectedGender = val;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       _birthdayField(),
                       const SizedBox(height: 16),
@@ -187,6 +260,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Cascading Region > Province > City dropdowns
                       Container(
                         margin: const EdgeInsets.symmetric(vertical: 2),
                         decoration: BoxDecoration(
@@ -206,91 +280,88 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         child: Row(
                           children: [
-                            const SizedBox(width: 12),
                             Flexible(
                               child: DropdownButtonHideUnderline(
-                                child: DropdownButtonFormField<String>(
+                                child: DropdownButton<String>(
                                   value: selectedRegion,
                                   hint: const Text('Region'),
                                   isExpanded: true,
                                   items:
-                                      ['NCR', 'Region I', 'Region II']
+                                      regions.keys
                                           .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e),
+                                            (region) => DropdownMenuItem(
+                                              value: region,
+                                              child: Text(region),
                                             ),
                                           )
                                           .toList(),
-                                  onChanged:
-                                      (val) =>
-                                          setState(() => selectedRegion = val),
-                                  validator:
-                                      (value) =>
-                                          value == null
-                                              ? 'Please select a region'
-                                              : null,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedRegion = val;
+                                      selectedProvince = null;
+                                      selectedCity = null;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: DropdownButtonHideUnderline(
-                                child: DropdownButtonFormField<String>(
+                                child: DropdownButton<String>(
                                   value: selectedProvince,
                                   hint: const Text('Province'),
                                   isExpanded: true,
                                   items:
-                                      ['Province 1', 'Province 2']
-                                          .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e),
-                                            ),
-                                          )
-                                          .toList(),
-                                  onChanged:
-                                      (val) => setState(
-                                        () => selectedProvince = val,
-                                      ),
-                                  validator:
-                                      (value) =>
-                                          value == null
-                                              ? 'Please select a province'
-                                              : null,
+                                      selectedRegion == null
+                                          ? []
+                                          : regions[selectedRegion!]!
+                                              .map(
+                                                (prov) => DropdownMenuItem(
+                                                  value: prov,
+                                                  child: Text(prov),
+                                                ),
+                                              )
+                                              .toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedProvince = val;
+                                      selectedCity = null;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: DropdownButtonHideUnderline(
-                                child: DropdownButtonFormField<String>(
+                                child: DropdownButton<String>(
                                   value: selectedCity,
                                   hint: const Text('City'),
                                   isExpanded: true,
                                   items:
-                                      ['City 1', 'City 2']
-                                          .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e),
-                                            ),
-                                          )
-                                          .toList(),
-                                  onChanged:
-                                      (val) =>
-                                          setState(() => selectedCity = val),
-                                  validator:
-                                      (value) =>
-                                          value == null
-                                              ? 'Please select a city'
-                                              : null,
+                                      selectedProvince == null
+                                          ? []
+                                          : provinces[selectedProvince!]!
+                                              .map(
+                                                (city) => DropdownMenuItem(
+                                                  value: city,
+                                                  child: Text(city),
+                                                ),
+                                              )
+                                              .toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedCity = val;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16),
                       _validatedFormField(
                         'Address (Barangay, Street, Postal Code)',
@@ -316,82 +387,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: () {}, // TODO: Implement profile picture upload
-                        child: Container(
-                          width: double.infinity,
-                          height: 100,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.black26, width: 1),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color.fromRGBO(0, 0, 0, 0.08),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(
-                                Icons.add_photo_alternate,
-                                size: 48,
-                                color: Colors.black54,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Upload your Profile Picture',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {}, // TODO: Implement voter's ID upload
-                        child: Container(
-                          width: double.infinity,
-                          height: 100,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.black26, width: 1),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color.fromRGBO(0, 0, 0, 0.08),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(
-                                Icons.perm_identity,
-                                size: 48,
-                                color: Colors.black54,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "Upload your Voter's ID",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
@@ -587,6 +583,33 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
+      // Age validation
+      if (selectedDay != null &&
+          selectedMonth != null &&
+          selectedYear != null) {
+        final birthDate = DateTime(
+          int.parse(selectedYear!),
+          int.parse(selectedMonth!),
+          int.parse(selectedDay!),
+        );
+        final now = DateTime.now();
+        final age =
+            now.year -
+            birthDate.year -
+            ((now.month < birthDate.month ||
+                    (now.month == birthDate.month && now.day < birthDate.day))
+                ? 1
+                : 0);
+        if (age < 18) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('You must be at least 18 years old to sign up.'),
+            ),
+          );
+          return;
+        }
+      }
+
       if (selectedDay == null ||
           selectedMonth == null ||
           selectedYear == null) {
@@ -598,6 +621,11 @@ class _SignupScreenState extends State<SignupScreen> {
           selectedProvince == null ||
           selectedCity == null) {
         _showSnackBar('Please select your complete address');
+        return;
+      }
+
+      if (selectedGender == null) {
+        _showSnackBar('Please select your gender');
         return;
       }
 
@@ -622,6 +650,7 @@ class _SignupScreenState extends State<SignupScreen> {
           'region': selectedRegion,
           'province': selectedProvince,
           'city': selectedCity,
+          'gender': selectedGender,
           'birthday': birthday.toIso8601String(),
         };
 
