@@ -19,9 +19,6 @@ class SupabaseAuthService {
     required String userId,
     required Map<String, dynamic> voterData,
   }) async {
-    await supabase.from('voters').insert({
-      ...voterData,
-      'id': userId, // Foreign key to auth.users.id
-    });
+    await supabase.from('voters').insert({...voterData, 'id': userId});
   }
 }

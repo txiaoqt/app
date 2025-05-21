@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'views/auth/splash_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Required before async calls in main
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://kshbuclueelnmqtdadsw.supabase.co',

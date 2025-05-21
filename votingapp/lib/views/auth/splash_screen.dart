@@ -14,11 +14,13 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEF7575), // Pink background
+      backgroundColor: const Color(0xFFEF7575),
       body: GestureDetector(
         onTap: () async {
           await Navigator.of(context).pushReplacement(
-            NoAnimationMaterialPageRoute(builder: (context) => const LoginScreen()),
+            NoAnimationMaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
           );
         },
         child: Center(
@@ -66,4 +68,4 @@ class SplashScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'success_screen.dart';
-import '../../supabase/auth/authCalls.dart'; // Make sure this path is correct
+import '../../supabase/auth/authCalls.dart';
 
 class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
   NoAnimationMaterialPageRoute({required super.builder, super.settings});

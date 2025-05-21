@@ -6,8 +6,7 @@ class ShareQRScreen extends StatelessWidget {
   const ShareQRScreen({super.key});
 
   final String appLink =
-      'https://play.google.com/store/apps/details?id=com.example.votewise'; // Replace with your real link
-
+      'https://play.google.com/store/apps/details?id=com.example.votewise';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
